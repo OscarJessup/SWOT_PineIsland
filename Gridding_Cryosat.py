@@ -1,3 +1,27 @@
+import os
+from pathlib import Path
+import xarray as xr
+import pandas as pd
+import geopandas as gpd
+from shapely.geometry import Point
+from typing import List
+import matplotlib.pyplot as plt
+import numpy as np
+from numpy.typing import NDArray
+import pandas as pd
+import xarray as xr
+import geopandas as gpd
+from scipy.interpolate import griddata
+from scipy.interpolate import RectBivariateSpline
+import numpy as np
+import rasterio
+from rasterio.transform import from_origin
+from rasterio.features import rasterize
+from ew_common.bounding_box import BoundingBox
+from ew_common.raster_tools.raster_np import RasterNp
+from shapely.geometry import box
+import math
+
 folder_path = Path('/data/ox1/working/cryotempo_investigations/swot_example_data/oscar_test_data/data_pineisland_1/Cryosat_Swath')
 cryosat_file_paths = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.nc')]
 
