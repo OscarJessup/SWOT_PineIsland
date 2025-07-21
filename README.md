@@ -6,3 +6,5 @@ SWOT Raster Data Uses the EarthAccess Module to download data directly from http
 CryoSat-2 Swath Data is from https://cs2eo.org/
 
 ICESat-2 ATL06 is directly available from https://nsidc.org/data/atl06/versions/6
+
+REMA Data is available from https://rema.apps.pgc.umn.edu/ with REMA mosaic exporting as a GeoTIFF
