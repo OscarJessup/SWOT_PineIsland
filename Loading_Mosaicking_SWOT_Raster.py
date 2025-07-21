@@ -110,7 +110,7 @@ def add_ellipsoid_height(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     )
     return gdf
  
-# Load, Mosaic, and Process
+# Load, Mosaic, Calculate Ellipsoid Height and Export the Combined Dataframe to a NetCDF file
 if __name__ == "__main__":
     print("Loading SWOT raster files...")
 
@@ -122,3 +122,11 @@ if __name__ == "__main__":
 
     gdf_combined = add_ellipsoid_height(gdf_combined)
     print("Ellipsoid height column added.")
+
+    # Export to NetCDF
+    df_nc = gdf_combined.drop(columns='geometry')
+    ds_nc = xr.Dataset.from_dataframe(df_nc)
+
+    output_path = data_root.parent / "cleaned_mosaicked_dataframes" / "combined_swot_granules.nc"
+    ds_nc.to_netcdf(output_path)
+    print(f"Saved NetCDF to {output_path}")
