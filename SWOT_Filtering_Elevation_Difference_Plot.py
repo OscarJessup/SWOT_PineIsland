@@ -14,6 +14,8 @@ from scipy.interpolate import griddata, RectBivariateSpline
 from matplotlib.colors import TwoSlopeNorm
 from ew_common.bounding_box import BoundingBox
 from ew_common.raster_tools.raster_np import RasterNp
+from matplotlib import pyplot as plt
+from matplotlib.colors import TwoSlopeNorm
 
 # Load SWOT Combined Dataframe 
 def load_geodataframe_swot_raster(file_path: str, granule_number=None, engine='h5netcdf') -> gpd.GeoDataFrame:
@@ -145,3 +147,75 @@ if __name__ == "__main__":
     )
     #inspect the data 
     print(gdf_trimmed.head())
+
+    #plotting the elevation difference data with the 2021 PIG grounding line and a basemap from sentinel-1
+
+    # Load grounding line shapefile
+    grounding_line_shp = '/data/ox1/working/cryotempo_investigations/swot_example_data/oscar_test_data/data_pineisland_1/grounding_line/20210305000000_AIS_CCI_GLL.2.0_20210305/20210305000000_AIS_CCI_GLL.2.0_20210305.shp'
+    grounding_line_gdf = gpd.read_file(grounding_line_shp)
+
+    #Load Sentinel-1 raster image
+    sentinel_1_tiff_path = '/data/ox1/working/cryotempo_investigations/swot_example_data/oscar_test_data/data_pineisland_1/Sentinel-1_tiffs/Sentinel_1_15_04_25_3031.tif'
+
+    with rasterio.open(sentinel_1_tiff_path) as src:
+        sentinel_1_img = src.read(1)
+        sentinel_1_extent = [src.bounds.left, src.bounds.right, src.bounds.bottom, src.bounds.top]
+        sentinel_1_crs = src.crs
+        sentinel_transform = src.transform
+
+    #Ensure correct CRS for all GeoDataFrames
+    target_crs = "EPSG:3031"
+
+    if gdf_trimmed.crs is not None and gdf_trimmed.crs.to_string() != target_crs:
+        gdf_trimmed = gdf_trimmed.to_crs(target_crs)
+    if grounding_line_gdf.crs is not None and grounding_line_gdf.crs.to_string() != target_crs:
+        grounding_line_gdf = grounding_line_gdf.to_crs(target_crs)
+
+    #WSE color scale limits
+    wse_min = gdf_trimmed['elevation_diff'].min()
+    wse_max = gdf_trimmed['elevation_diff'].max()
+
+    # Create plot
+    fig, ax = plt.subplots(figsize=(12, 12))
+    
+    # Plot Sentinel-1 background
+    ax.imshow(
+        sentinel_1_img,
+        extent=sentinel_1_extent,
+        origin='upper', 
+        cmap='gray',
+        alpha=0.8,
+        zorder=0
+    )
+    
+    # Plot SWOT elevation difference
+    sc = ax.scatter(
+        gdf_trimmed['x'],
+        gdf_trimmed['y'],
+        c=gdf_trimmed['elevation_diff'], #adjust as necessary dependent on either plotting elevation difference between  CryoSat, ICESat-2 or REMA
+        cmap='RdYlBu',
+        s=1,
+        alpha=0.7,
+        norm=TwoSlopeNorm(vmin=-100, vcenter=0, vmax=60)
+    )
+    
+    # Plot grounding line
+    grounding_line_gdf.plot(ax=ax, color='black', linewidth=1, label='2021 PIG Grounding Line')
+    
+    # Title, labels, colorbar
+    cbar = fig.colorbar(sc, ax=ax, label='Elevation Difference (m)', shrink=0.9)
+    ax.set_title('Elevation Difference (m) between SWOT and CryoSat-2 measurements', fontsize=12)
+    ax.set_xlabel('Easting (m)')
+    ax.set_ylabel('Northing (m)')
+    ax.set_aspect('equal')
+    
+    # Set plot extent
+    buffer = 3000
+    x_min, x_max = gdf_trimmed['x'].min(), gdf_trimmed['x'].max()
+    y_min, y_max = gdf_trimmed['y'].min(), gdf_trimmed['y'].max()
+    ax.set_xlim(x_min, x_max + buffer)
+    ax.set_ylim(y_min - buffer, y_max + buffer)
+    
+    # Show legend and final plot
+    ax.legend()
+    plt.show()
