@@ -1,5 +1,5 @@
 # SWOT_PineIsland
-A repository for storing code for evaluating land ice elevation values over the Pine Island Glacier.
+A repository for storing code in regard to evaluating ice surface elevation heights over the Pine Island Ice Shelf.
 
 SWOT Raster Data Uses the EarthAccess Module to download data directly from https://search.earthdata.nasa.gov/search/granules?portal=podaac-cloud&p=C2799438271-POCLOUD&pg[0][v]=f&pg[0][gsk]=-start_date&fi=KaRIn&tl=1712130367.628!4!!
 
