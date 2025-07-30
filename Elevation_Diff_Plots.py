@@ -122,3 +122,58 @@ for granule in filtered_gdf['granule_number'].unique():
         cbar_label='Water Surface Elevation (m)'
     )
 
+def export_columns_to_geotiff(gdf, columns, output_dir, resolution=100, crs_epsg=3031):
+    """
+    Export specified columns from the GeoDataFrame to individual GeoTIFFs.
+    """
+    if gdf.crs is None:
+        gdf = gdf.set_crs(epsg=4326)
+    gdf = gdf.to_crs(epsg=crs_epsg)
+
+    minx, miny, maxx, maxy = gdf.total_bounds
+    width = int((maxx - minx) / resolution)
+    height = int((maxy - miny) / resolution)
+    transform = from_origin(minx, maxy, resolution, resolution)
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    for col in columns:
+        print(f"Exporting: {col}")
+        shapes = [(geom, value) for geom, value in zip(gdf.geometry, gdf[col]) if pd.notnull(value)]
+
+        raster = rasterize(
+            shapes=shapes,
+            out_shape=(height, width),
+            transform=transform,
+            fill=np.nan,
+            dtype='float32'
+        )
+
+        output_fp = os.path.join(output_dir, f"{col}.tif")
+        with rasterio.open(
+            output_fp,
+            'w',
+            driver='GTiff',
+            height=height,
+            width=width,
+            count=1,
+            dtype='float32',
+            crs=f"EPSG:{crs_epsg}",
+            transform=transform,
+            nodata=np.nan
+        ) as dst:
+            dst.write(raster, 1)
+        print(f"Saved: {output_fp}")
+
+# Columns to export as raster layers
+columns_to_export = [
+    'wse',
+    'elevation_diff',
+    'ellipsoid_height',
+    'elevation_diff_icesat',
+    'elevation_diff_rema'
+]
+
+# Output folder
+output_dir = '/data/ox1/working/cryotempo_investigations/swot_example_data/oscar_test_data/data_pineisland_1/GeoTIFF_output'
+export_columns_to_geotiff(swot_gdf, columns_to_export, output_dir)
