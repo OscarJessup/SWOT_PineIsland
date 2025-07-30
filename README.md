@@ -9,5 +9,5 @@ ICESat-2 ATL06 is directly available from https://nsidc.org/data/atl06/versions/
 
 REMA Data is available from https://rema.apps.pgc.umn.edu/ with REMA mosaic exporting as a GeoTIFF
 
-To perform elevation difference is it necessary to clone Earthwave's ew_gdal_helpers repository and activate the ew_gdal_helpers environment in conda. 
+To perform elevation difference it is necessary to clone Earthwave's ew_gdal_helpers repository and activate the ew_gdal_helpers environment in conda. 
 
